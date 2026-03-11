@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CalorieOS — Your Daily Fuel Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #18181f;
+    --border: #2a2a35;
+    --accent: #c8f560;
+    --accent2: #60f5c8;
+    --warn: #f5a060;
+    --danger: #f56060;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --font-mono: 'Space Mono', monospace;
+    --font-sans: 'DM Sans', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Grid bg ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(200,245,96,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,245,96,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  /* ── Header ── */
+  header {
+    padding: 2rem 2rem 1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .logo {
+    font-family: var(--font-mono);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.03em;
+  }
+  .logo span { color: var(--muted); }
+  .tagline {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-left: auto;
+    font-family: var(--font-mono);
+  }
+
+  /* ── Layout ── */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 4rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+  @media (max-width: 768px) { main { grid-template-columns: 1fr; } }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.4;
+  }
+  .card-title {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .card-title::before {
+    content: '▸';
+    font-size: 0.6rem;
+  }
+
+  /* ── Form ── */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .field { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+  .field label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-family: var(--font-mono);
+  }
+  .field input, .field select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.65rem 0.9rem;
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    -webkit-appearance: none;
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(200,245,96,0.08);
+  }
+  .field select option { background: var(--surface2); }
+
+  /* ── Goal pills ── */
+  .goal-group { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .goal-pill {
+    flex: 1;
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-family: var(--font-mono);
+    text-align: center;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .goal-pill:hover { border-color: var(--accent); color: var(--accent); }
+  .goal-pill.active-loss   { border-color: var(--warn);   background: rgba(245,160,96,0.1);  color: var(--warn);  }
+  .goal-pill.active-maintain { border-color: var(--accent2); background: rgba(96,245,200,0.08); color: var(--accent2); }
+  .goal-pill.active-gain  { border-color: var(--accent);  background: rgba(200,245,96,0.08); color: var(--accent); }
+
+  /* ── Submit btn ── */
+  .btn-calc {
+    width: 100%;
+    padding: 0.85rem;
+    background: var(--accent);
+    color: #0a0a0f;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: opacity 0.2s, transform 0.15s;
+  }
+  .btn-calc:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-calc:active { transform: translateY(0); }
+
+  /* ── Result panel ── */
+  #result { display: none; }
+  #result.visible { display: block; }
+
+  .big-cal {
+    font-family: var(--font-mono);
+    font-size: 3.5rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    margin: 0.5rem 0 0.2rem;
+  }
+  .big-cal span { color: var(--accent); }
+  .cal-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+  }
+  .stat {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.9rem;
+    text-align: center;
+  }
+  .stat-val {
+    font-family: var(--font-mono);
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+  .stat-val.protein { color: var(--accent); }
+  .stat-val.carbs   { color: var(--accent2); }
+  .stat-val.fat     { color: var(--warn); }
+  .stat-lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.2rem; }
+
+  .calorie-breakdown {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .breakdown-item {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    font-size: 0.78rem;
+  }
+  .breakdown-item .bval {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+  }
+  .breakdown-item .blbl { color: var(--muted); font-size: 0.7rem; text-transform: uppercase; }
+
+  /* ── macro bar ── */
+  .macro-bar {
+    display: flex;
+    height: 6px;
+    border-radius: 99px;
+    overflow: hidden;
+    margin-top: 1rem;
+    gap: 2px;
+  }
+  .mb-p { background: var(--accent);  flex: 30; border-radius: 99px 0 0 99px; }
+  .mb-c { background: var(--accent2); flex: 40; }
+  .mb-f { background: var(--warn);    flex: 30; border-radius: 0 99px 99px 0; }
+
+  /* ── History ── */
+  #history-section { grid-column: 1 / -1; }
+  .history-list { display: grid; gap: 0.75rem; }
+  .history-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .hc-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    min-width: 100px;
+  }
+  .hc-goal {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .goal-fat_loss   { background: rgba(245,160,96,0.12); color: var(--warn);   border: 1px solid rgba(245,160,96,0.3); }
+  .goal-maintain   { background: rgba(96,245,200,0.08); color: var(--accent2); border: 1px solid rgba(96,245,200,0.3); }
+  .goal-muscle_gain { background: rgba(200,245,96,0.08); color: var(--accent); border: 1px solid rgba(200,245,96,0.3); }
+  .hc-cals {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-left: auto;
+  }
+  .hc-meta { font-size: 0.75rem; color: var(--muted); }
+  .hc-del {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    color: var(--muted); cursor: pointer; padding: 0.3rem 0.5rem;
+    font-size: 0.75rem; transition: all 0.2s; font-family: var(--font-mono);
+  }
+  .hc-del:hover { border-color: var(--danger); color: var(--danger); }
+
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-family: var(--font-mono);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+  }
+
+  .toast {
+    position: fixed; bottom: 2rem; right: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 0.75rem 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--accent);
+    transform: translateY(4rem);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 100;
+  }
+  .toast.show { transform: none; opacity: 1; }
+
+  .error-msg {
+    background: rgba(245,96,96,0.1);
+    border: 1px solid rgba(245,96,96,0.3);
+    color: var(--danger);
+    padding: 0.6rem 0.9rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+    font-family: var(--font-mono);
+    display: none;
+  }
+  .error-msg.visible { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Calorie<span> Calculator</span></div>
+  <div class="tagline">Daily Fuel Calculator</div>
+</header>
+
+<main>
+  <!-- ── Form ── -->
+  <div class="card">
+    <div class="card-title">Profile Input</div>
+    <div id="error-msg" class="error-msg"></div>
+
+    <div class="form-row">
+      <div class="field">
+        <label>Name</label>
+        <input type="text" id="name" placeholder="e.g. Alex"/>
+      </div>
+      <div class="field">
+        <label>Age</label>
+        <input type="number" id="age" placeholder="25" min="10" max="100"/>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field">
+        <label>Height (cm)</label>
+        <input type="number" id="height" placeholder="175" min="100" max="250"/>
+      </div>
+      <div class="field">
+        <label>Weight (kg)</label>
+        <input type="number" id="weight" placeholder="70" min="30" max="300"/>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field">
+        <label>Gender</label>
+        <select id="gender">
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Activity Level</label>
+        <select id="activity">
+          <option value="sedentary">Sedentary (desk job)</option>
+          <option value="light">Light (1–3×/week)</option>
+          <option value="moderate" selected>Moderate (3–5×/week)</option>
+          <option value="active">Active (6–7×/week)</option>
+          <option value="very_active">Very Active (athlete)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Goal</label>
+      <div class="goal-group">
+        <div class="goal-pill active-loss" data-goal="fat_loss">🔥 Fat Loss</div>
+        <div class="goal-pill" data-goal="maintain">⚖️ Maintain</div>
+        <div class="goal-pill" data-goal="muscle_gain">💪 Muscle Gain</div>
+      </div>
+      <input type="hidden" id="goal" value="fat_loss"/>
+    </div>
+
+    <button class="btn-calc" onclick="calculate()">▶ Calculate Calories</button>
+  </div>
+
+  <!-- ── Result ── -->
+  <div class="card" id="result">
+    <div class="card-title">Your Results</div>
+
+    <div class="cal-label">Target Daily Calories</div>
+    <div class="big-cal" id="res-target">0 <span>kcal</span></div>
+
+    <div class="calorie-breakdown">
+      <div class="breakdown-item">
+        <div class="bval" id="res-bmr">—</div>
+        <div class="blbl">BMR</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="bval" id="res-maint">—</div>
+        <div class="blbl">Maintenance</div>
+      </div>
+      <div class="breakdown-item" id="res-diff-box">
+        <div class="bval" id="res-diff">—</div>
+        <div class="blbl">Difference</div>
+      </div>
+    </div>
+
+    <div class="macro-bar">
+      <div class="mb-p"></div><div class="mb-c"></div><div class="mb-f"></div>
+    </div>
+
+    <div class="stat-row" style="margin-top:1rem">
+      <div class="stat">
+        <div class="stat-val protein" id="res-protein">—</div>
+        <div class="stat-lbl">Protein g</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val carbs" id="res-carbs">—</div>
+        <div class="stat-lbl">Carbs g</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val fat" id="res-fat">—</div>
+        <div class="stat-lbl">Fat g</div>
+      </div>
+    </div>
+
+    <p style="font-size:0.72rem;color:var(--muted);margin-top:1rem;line-height:1.5">
+      Based on Mifflin-St Jeor equation. Macros: 30% protein · 40% carbs · 30% fat.
+    </p>
+  </div>
+
+  <!-- ── History ── -->
+  <div class="card" id="history-section">
+    <div class="card-title">Saved Profiles</div>
+    <div id="history-list" class="history-list">
+      <div class="empty-state">// no profiles yet</div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api';
+let selectedGoal = 'fat_loss';
+
+// Goal pill selection
+document.querySelectorAll('.goal-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.goal-pill').forEach(p =>
+      p.classList.remove('active-loss','active-maintain','active-gain'));
+    selectedGoal = pill.dataset.goal;
+    document.getElementById('goal').value = selectedGoal;
+    if (selectedGoal === 'fat_loss')    pill.classList.add('active-loss');
+    if (selectedGoal === 'maintain')    pill.classList.add('active-maintain');
+    if (selectedGoal === 'muscle_gain') pill.classList.add('active-gain');
+  });
+});
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = '⚠ ' + msg;
+  el.classList.add('visible');
+  setTimeout(() => el.classList.remove('visible'), 4000);
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+async function calculate() {
+  const name   = document.getElementById('name').value.trim();
+  const age    = parseInt(document.getElementById('age').value);
+  const height = parseInt(document.getElementById('height').value);
+  const weight = parseFloat(document.getElementById('weight').value);
+  const gender = document.getElementById('gender').value;
+  const activityLevel = document.getElementById('activity').value;
+  const goal   = selectedGoal;
+
+  if (!name || !age || !height || !weight) return showError('Please fill in all fields.');
+
+  try {
+    const res = await fetch(`${API}/profiles`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, age, heightCm: height, weightKg: weight, gender, activityLevel, goal })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Server error');
+    showResult(data);
+    toast('✓ Profile saved');
+    loadHistory();
+  } catch(e) {
+    showError(e.message);
+  }
+}
+
+function showResult(d) {
+  document.getElementById('result').classList.add('visible');
+  document.getElementById('res-target').innerHTML = `${d.targetCalories} <span>kcal</span>`;
+  document.getElementById('res-bmr').textContent   = d.bmr;
+  document.getElementById('res-maint').textContent = d.maintenance;
+  const diff = d.targetCalories - d.maintenance;
+  const diffEl = document.getElementById('res-diff');
+  diffEl.textContent = (diff >= 0 ? '+' : '') + diff;
+  diffEl.style.color = diff < 0 ? 'var(--warn)' : (diff > 0 ? 'var(--accent)' : 'var(--accent2)');
+  document.getElementById('res-protein').textContent = d.protein;
+  document.getElementById('res-carbs').textContent   = d.carbs;
+  document.getElementById('res-fat').textContent     = d.fat;
+  document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function loadHistory() {
+  try {
+    const res = await fetch(`${API}/profiles`);
+    const profiles = await res.json();
+    const list = document.getElementById('history-list');
+    if (!profiles.length) {
+      list.innerHTML = '<div class="empty-state">// no profiles yet</div>';
+      return;
+    }
+    list.innerHTML = profiles.map(p => `
+      <div class="history-card">
+        <div>
+          <div class="hc-name">${esc(p.name)}</div>
+          <div class="hc-meta">${p.age}y · ${p.heightCm}cm · ${p.weightKg}kg</div>
+        </div>
+        <span class="hc-goal goal-${p.goal}">${goalLabel(p.goal)}</span>
+        <div class="hc-cals">${p.targetCalories} kcal</div>
+        <button class="hc-del" onclick="deleteProfile('${p._id}')">✕</button>
+      </div>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function deleteProfile(id) {
+  await fetch(`${API}/profiles/${id}`, { method: 'DELETE' });
+  toast('Deleted');
+  loadHistory();
+}
+
+function goalLabel(g) {
+  return { fat_loss: '🔥 Fat Loss', maintain: '⚖️ Maintain', muscle_gain: '💪 Gain' }[g] || g;
+}
+function esc(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+loadHistory();
+</script>
+</body>
+</html>
