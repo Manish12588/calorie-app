@@ -23,7 +23,7 @@ jobs:
               if: github.ref_name == 'main'
               uses: docker/build-push-action@v6
               with:
-                context: .  #Path of the docker compose file
+                context: ./backend/Dockerfile  #Path of the docker compose file
                 push: true
                 tags: |
                   ${{secrets.DOCKERHUB_USERNAME}}/repo:latest
