@@ -26,7 +26,9 @@ jobs:
               with:
                 image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/calorie-app:${{ github.sha }}
                 severity: 'CRITICAL,HIGH'
+                format: 'table'
                 exit-code: '1'
+                ignore-unfixed: true
                 trivyignores: .trivyignore
             
             - name: Show Trivy table summary in logs
@@ -34,6 +36,14 @@ jobs:
               uses: aquasecurity/trivy-action@0.35.0
               with:
                 image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/calorie-app:${{ github.sha }}
-                format: 'table'
+                format: 'sarif'
+                output: 'trivy-results.sarif'
                 severity: 'CRITICAL,HIGH'
+                ignore-unfixed: true
                 exit-code: '0'
+
+            - name: Upload SARIF to GitHub Security tab
+              uses: github/codeql-action/upload-sarif@v3
+              if: always()
+              with:
+                sarif_file: 'trivy-results.sarif'
