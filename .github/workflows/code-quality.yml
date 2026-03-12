@@ -28,6 +28,7 @@ jobs:
               working-directory: ./backend
             
               # LINT: Checks for syntax and style (Node equivalent of flake8)
+              # npm install --save-dev eslint to keep below steps same
             - name: Run ESLint
               run: npx eslint .
 
