@@ -12,7 +12,7 @@ services:
       - app-net
 
   backend:
-    build: ${DOCKERHUB_USERNAME}/calorie-app:${DOCKER_TAG}
+    image: ${DOCKERHUB_USER}/calorie-app:${DOCKER_TAG}
     container_name: calorie-backend
     restart: unless-stopped
     environment:
