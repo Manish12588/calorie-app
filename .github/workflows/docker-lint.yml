@@ -2,7 +2,9 @@
 name: Docker Lint
 
 on: 
-    workflow_call:
+    #workflow_call:
+    workflow_dispatch:
+      
 
 jobs:
     validate-dockerfile:
