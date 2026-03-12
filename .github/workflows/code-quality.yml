@@ -32,18 +32,17 @@ jobs:
             #- name: Install ESLint
             #  run: npm install
 
-            #- name: Run ESLint
-            #  working-directory: ./backend 
-            #  run: npm run lint
-            
             - name: Run ESLint
-              uses: sibiraj-s/action-eslint@v4
-              with:
-                #token: ${{ secrets.GITHUB_TOKEN }}
-                #eslint-args: "--ignore-path .gitignore"
-                extensions: "js"
-                working-directory: "./backend"
-                annotations: true
+              working-directory: ./backend 
+              run: npm run lint
+            
+            #- name: Run ESLint
+            #  uses: sibiraj-s/action-eslint@v4
+            #  with:
+            #    extensions: "js"
+            #    working-directory: "./backend"
+            #    annotations: true
+            #    all-files: true
 
             # SAST: Static analysis of your written code (Equivalent to Bandit)
             - name: Run njsscan (Static Analysis)
