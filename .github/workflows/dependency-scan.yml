@@ -22,6 +22,11 @@ jobs:
                 cache: "npm"
                 cache-dependency-path: "./package-lock.json"
             
+            # This creates the lockfile if npm install didn't (or if you skipped it)
+            - name: Generate Lockfile for Audit
+              working-directory: ./backend
+              run: npm install --package-lock-only
+
               # Fails the build if "high" or "critical" vulnerabilities are found
             - name: Run npm Audit
               working-directory: ./backend
