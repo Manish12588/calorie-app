@@ -24,16 +24,17 @@ jobs:
                 cache-dependency-path: "./backend/package.json"
             
             - name: Install Dependencies
-              run: npm install
               working-directory: ./backend
+              run: npm install
+              
             
               # LINT: Checks for syntax and style (Node equivalent of flake8)
               # npm install --save-dev eslint to keep below steps same
-            
             - name: Install ESLint
               run: npm install
 
             - name: Run ESLint
+              working-directory: ./backend 
               run: npm run lint
 
               # SAST: Checks for security vulnerabilities (Node equivalent of Bandit)
