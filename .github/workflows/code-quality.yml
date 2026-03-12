@@ -25,22 +25,33 @@ jobs:
             
             - name: Install Dependencies
               working-directory: ./backend
-              run: npm install
+              run: npm ci
               
-            
               # LINT: Checks for syntax and style (Node equivalent of flake8)
               # npm install --save-dev eslint to keep below steps same
-            - name: Install ESLint
-              run: npm install
+            #- name: Install ESLint
+            #  run: npm install
 
+            #- name: Run ESLint
+            #  working-directory: ./backend 
+            #  run: npm run lint
+            
             - name: Run ESLint
-              working-directory: ./backend 
-              run: npm run lint
-
-              # SAST: Checks for security vulnerabilities (Node equivalent of Bandit)
-            - name: Run Snyk Security Scan
-              uses: snyk/actions/node@master
+              uses: sibiraj-s/action-eslint@v4
               with:
-                args: --file=backend/package.json
-              env:
-                SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+                #token: ${{ secrets.GITHUB_TOKEN }}
+                #eslint-args: "--ignore-path .gitignore"
+                extensions: "js"
+                working-directory: "./backend"
+                annotations: true
+
+            # SAST: Static analysis of your written code (Equivalent to Bandit)
+            - name: Run njsscan (Static Analysis)
+              run: |
+                pip install njsscan
+                njsscan ./backend
+
+            # SAST: Checking your 3rd party libraries for known vulnerabilities
+            - name: Run npm audit (Dependency Scan)
+              working-directory: ./backend
+              run: npm audit --audit-level=high
