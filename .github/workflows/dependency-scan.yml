@@ -1,0 +1,28 @@
+# packages - issues ya vulnerabilities (scan)
+# pip-audit (Python Package Installer) : Only if your code is python based
+
+name: Dependency Scan
+
+on:
+    workflow_call:
+    #workflow_dispatch:
+      
+
+jobs:
+    dependency-check:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Code Checkout 
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: "20"
+                cache: "npm"
+                cache-dependency-path: "./package-lock.json"
+            
+              # Fails the build if "high" or "critical" vulnerabilities are found
+            - name: Run npm Audit
+              working-directory: ./backend
+              run: npm audit --audit-level=high
