@@ -1,0 +1,36 @@
+# Linting and SAST (Static Application Security Testing) scan
+# Lint -  
+# SAST -
+
+name: Code Quality
+
+on:    
+    #workflow_call:
+    workflow_dispatch:
+
+jobs:
+    validate:
+        name: Lint and Format Check
+        runs-on: ubuntu-latest
+        steps:
+            - name: checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: "20"
+                cache: "npm"
+            
+            - name: Install Dependencies
+              run: npm ci
+            
+              # LINT: Checks for syntax and style (Node equivalent of flake8)
+            - name: Run ESLint
+              run: npx eslint .
+
+              # SAST: Checks for security vulnerabilities (Node equivalent of Bandit)
+            - name: Run Snyk Security Scan
+              uses: snyk/actions/node@master
+              env:
+                SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
