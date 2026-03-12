@@ -26,7 +26,7 @@ jobs:
                  mkdir -p ~/calorie-app/frontend
 
             - name: Copy the docker-compose file
-              uses: appleboy/scp-action@v1
+              uses: appleboy/scp-action@v0.1.7
               with:
                 host: ${{ secrets.EC2_SSH_HOST }}
                 username: ${{ secrets.EC2_SSH_USER }}
@@ -42,12 +42,13 @@ jobs:
                 key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
                 script: |
                  echo "Running App"
+                 cd ~/calorie-app
                  cat > .env << 'EOF'
                  DOCKERHUB_USER=${{ secrets.DOCKERHUB_USERNAME }}
                  DOCKER_TAG=${{ github.sha }}
                  EOF
+                 cat .env
                  echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-                 cd ~/calorie-app
                  docker compose pull
                  docker compose down
                  docker compose up -d --force-recreate
