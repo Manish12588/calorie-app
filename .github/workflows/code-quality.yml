@@ -24,7 +24,7 @@ jobs:
                 cache-dependency-path: "./backend/package.json"
             
             - name: Install Dependencies
-              working-directory: ./backend
+              working-directory: ./node_modules
               run: npm ci
               
               # LINT: Checks for syntax and style (Node equivalent of flake8)
