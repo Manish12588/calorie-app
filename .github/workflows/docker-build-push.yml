@@ -4,7 +4,8 @@ on:
     #push:
     #    branches:
     #        - main
-    workflow_dispatch:
+    #workflow_dispatch:
+    workflow_call:
       
 jobs:
     docker-build-and-push:
@@ -20,7 +21,6 @@ jobs:
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
             
             - name: Build and Push Image to Dockerhub
-              if: github.ref_name == 'main'
               uses: docker/build-push-action@v6
               with:
                 context: ./backend  #Path of the docker file
