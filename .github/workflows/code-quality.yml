@@ -1,5 +1,5 @@
 # Linting and SAST (Static Application Security Testing) scan
-# Lint -  
+# Lint -  ESLint
 # SAST -
 
 name: Code Quality
@@ -25,6 +25,7 @@ jobs:
             
             - name: Install Dependencies
               run: npm install
+              working-directory: ./backend
             
               # LINT: Checks for syntax and style (Node equivalent of flake8)
             - name: Run ESLint
